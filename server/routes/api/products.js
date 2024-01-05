@@ -1,8 +1,9 @@
 const express = require('express');
 const axios = require('axios');
+const mongodb = require('mongodb');
 const dotenv = require("dotenv");
 dotenv.config();
-const mongodb = require('mongodb');
+
 
 const router = express.Router();
 
@@ -23,7 +24,6 @@ router.post('/', async (req,res) => {
         await products.insertMany(productData['data']);
         res.status(201).json({ message: 'Products added successfully!' });
       } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     } catch (error) {
@@ -36,20 +36,19 @@ router.post('/', async (req,res) => {
 router.post('/:id', async(req,res) => {
     try {
         const productData = await axios.get(process.env.WAREHOUSE_API+'/'+req.params.id);
-        console.log(productData);
-        res.status(201).json({ message: 'Products added successfully!', data: productData});
+        const products = await loadProductsCollection();
+        try {
+           const updateResult = await products.updateOne(
+                {_id: productData['data']['_id']},
+                {$set: {'qty' : productData['data']['qty']}}
+            );
+            res.status(201).json({message: 'Product qty updated successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Internal Server Error'})
+        }
     } catch (error) {
         res.status(500).json({message: "Something went wrong. Could not get productData from Warehouse."})
     }
-    // const products = await loadProductsCollection();
-    // const {name,description,price,qty} = req.body;
-    // try {
-    //      await products.updateOne({_id: new mongodb.ObjectId(req.params.id)},{$set: {name : name, description : description, price : price, qty : qty}})
-    //     res.status(201).json({message: 'Product parameters edited successfully'});
-    // } catch (error) {
-    //     res.status(500).json({error: 'Internal Server Error'})
-    // }
-   
 });
 
 //Delete all products from local database

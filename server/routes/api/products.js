@@ -38,7 +38,7 @@ router.post('/:id', async(req,res) => {
         const productData = await axios.get(process.env.WAREHOUSE_API+'/'+req.params.id);
         const products = await loadProductsCollection();
         try {
-           const updateResult = await products.updateOne(
+           await products.updateOne(
                 {_id: productData['data']['_id']},
                 {$set: {'qty' : productData['data']['qty']}}
             );

@@ -1,22 +1,26 @@
- const express = require('express');
- const bodyParser = require('body-parser');
- const cors = require('cors');
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const path = require('path');
 
- const app = express();
+const app = express();
 
- app.use(bodyParser.json());
- app.use(cors());
+app.use(bodyParser.json());
+app.use(cors());
 
- const products = require('./routes/api/products');
+const products = require('./routes/api/products');
 
- app.use('/api/products',products);
+app.use('/api/products',products);
 
- if(process.env.NODE_ENV === 'production') {
-    app.use(express.static(__dirname + '/public/'));
+if(process.env.NODE_ENV === 'production') {
+  const publicPath = path.join(__dirname, '../public');
+   app.use(express.static(publicPath));
+  
+   app.get(/.*/, (req,res) => {
+     const indexPath = path.join(publicPath, 'index.html')
+     res.sendFile(indexPath)
+   });
+}
 
-    app.get(/.*/, (req,res) => res.sendFile(__dirname + '/public/index.html'));
- }
-
- const port = process.env.PORT || 5001;
-
- app.listen(port, () => console.log(`Server running on ${port}`));
+const port = process.env.PORT || 5001;
+app.listen(port, () => console.log(`Server running on ${port}`));
